@@ -21,15 +21,15 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 import net.minecraft.network.NetworkState;
-import net.minecraft.network.ServerConfigurationPacketHandler;
+import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.configuration.ConfigurationTask;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.server.MinecraftServer;
 
 import org.quiltmc.loader.api.ModContainer;
-import org.quiltmc.qsl.networking.api.CustomPayloads;
 import org.quiltmc.qsl.networking.api.PacketSender;
+import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 import org.quiltmc.qsl.networking.api.ServerConfigurationConnectionEvents;
 import org.quiltmc.qsl.networking.api.ServerConfigurationNetworking;
 import org.quiltmc.qsl.networking.api.ServerConfigurationTaskManager;
@@ -43,8 +43,8 @@ public class CommonPacketsImpl {
 	public static final int[] SUPPORTED_COMMON_PACKET_VERSIONS = new int[]{PACKET_VERSION_1};
 
 	public static void init(ModContainer mod) {
-		CustomPayloads.registerC2SPayload(CommonVersionPayload.PACKET_ID, CommonVersionPayload::new);
-		CustomPayloads.registerC2SPayload(CommonRegisterPayload.PACKET_ID, CommonRegisterPayload::new);
+		PayloadTypeRegistry.playC2S().register(CommonVersionPayload.PACKET_ID, CommonVersionPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(CommonRegisterPayload.PACKET_ID, CommonRegisterPayload.CODEC);
 
 		ServerConfigurationNetworking.registerGlobalReceiver(CommonVersionPayload.PACKET_ID, CommonPacketsImpl::handleCommonVersion);
 		ServerConfigurationNetworking.registerGlobalReceiver(CommonRegisterPayload.PACKET_ID, CommonPacketsImpl::handleCommonRegister);
@@ -64,13 +64,13 @@ public class CommonPacketsImpl {
 		});
 	}
 
-	private static void handleCommonVersion(MinecraftServer server, ServerConfigurationPacketHandler handler, CommonVersionPayload payload, PacketSender<CustomPayload> responseSender) {
+	private static void handleCommonVersion(MinecraftServer server, ServerConfigurationNetworkHandler handler, CommonVersionPayload payload, PacketSender<CustomPayload> responseSender) {
 		ServerConfigurationNetworkAddon addon = ServerNetworkingImpl.getAddon(handler);
 		addon.onCommonVersionPacket(getNegotiatedVersion(payload));
 		((ServerConfigurationTaskManager) handler).finishTask(CommonVersionConfigurationTask.KEY);
 	}
 
-	private static void handleCommonRegister(MinecraftServer server, ServerConfigurationPacketHandler handler, CommonRegisterPayload payload, PacketSender<CustomPayload> responseSender) {
+	private static void handleCommonRegister(MinecraftServer server, ServerConfigurationNetworkHandler handler, CommonRegisterPayload payload, PacketSender<CustomPayload> responseSender) {
 		ServerConfigurationNetworkAddon addon = ServerNetworkingImpl.getAddon(handler);
 
 		if (CommonRegisterPayload.PLAY_PHASE.equals(payload.phase())) {

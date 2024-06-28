@@ -16,55 +16,41 @@
 
 package org.quiltmc.qsl.networking.mixin;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.network.RegistryByteBuf;
+import org.quiltmc.qsl.networking.impl.QuiltCustomPayloadPacketCodec;
+import org.quiltmc.qsl.networking.impl.PayloadTypeRegistryImpl;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.network.packet.payload.CustomPayload;
-import net.minecraft.util.Identifier;
-
-import org.quiltmc.qsl.networking.api.PacketByteBufs;
-import org.quiltmc.qsl.networking.impl.NetworkingImpl;
-import org.quiltmc.qsl.networking.impl.payload.PacketByteBufPayload;
 
 @Mixin(CustomPayloadC2SPacket.class)
 public class CustomPayloadC2SPacketMixin {
-	@Shadow
-	@Final
-	@Mutable
-	private static Map<Identifier, PacketByteBuf.Reader<? extends CustomPayload>> KNOWN_TYPES;
+	@WrapOperation(
+		method = "<clinit>",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/network/packet/payload/CustomPayload;create(Lnet/minecraft/network/packet/payload/CustomPayload$CodecFactory;Ljava/util/List;)Lnet/minecraft/network/codec/PacketCodec;"
+		)
+	)
+	private static PacketCodec<PacketByteBuf, CustomPayload> wrapCodec(CustomPayload.CodecFactory<PacketByteBuf> unknownCodecFactory, List<CustomPayload.Type<PacketByteBuf, ?>> types, Operation<PacketCodec<PacketByteBuf, CustomPayload>> original) {
+		PacketCodec<PacketByteBuf, CustomPayload> codec = original.call(unknownCodecFactory, types);
+		QuiltCustomPayloadPacketCodec<PacketByteBuf> fabricCodec = (QuiltCustomPayloadPacketCodec<PacketByteBuf>) codec;
+		fabricCodec.setPacketCodecProvider((packetByteBuf, identifier) -> {
+			// CustomPayloadC2SPacket does not have a separate codec for play/configuration. We know if the packetByteBuf is a PacketByteBuf we are in the play phase.
+			if (packetByteBuf instanceof RegistryByteBuf) {
+				return (CustomPayload.Type<PacketByteBuf, ? extends CustomPayload>) (Object) PayloadTypeRegistryImpl.PLAY_C2S.get(identifier);
+			}
 
-	@Inject(method = "<clinit>", at = @At("TAIL"))
-	private static void makeMutable(CallbackInfo ci) {
-		KNOWN_TYPES = new HashMap<>(KNOWN_TYPES);
-	}
-
-	@Inject(method = "readPayload", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/c2s/common/CustomPayloadC2SPacket;readUnknownPayload(Lnet/minecraft/util/Identifier;Lnet/minecraft/network/PacketByteBuf;)Lnet/minecraft/network/packet/payload/DiscardedCustomPayload;"), cancellable = true)
-	private static void inject(Identifier id, PacketByteBuf buf, CallbackInfoReturnable<PacketByteBufPayload> cir) {
-		PacketByteBuf copied = PacketByteBufs.copy(buf);
-		cir.setReturnValue(new PacketByteBufPayload(id, copied));
-		buf.skipBytes(buf.readableBytes());
-	}
-
-	@ModifyArg(method = "apply(Lnet/minecraft/network/listener/ServerCommonPacketListener;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/listener/ServerCommonPacketListener;onCustomPayload(Lnet/minecraft/network/packet/c2s/common/CustomPayloadC2SPacket;)V"))
-	public CustomPayloadC2SPacket reserialize(CustomPayloadC2SPacket packet) {
-		if (NetworkingImpl.RESERIALIZE_CUSTOM_PAYLOADS) {
-			PacketByteBuf buf = PacketByteBufs.create();
-			packet.write(buf);
-			return new CustomPayloadC2SPacket(buf);
-		}
-
-		return packet;
+			return PayloadTypeRegistryImpl.CONFIGURATION_C2S.get(identifier);
+		});
+		return codec;
 	}
 }

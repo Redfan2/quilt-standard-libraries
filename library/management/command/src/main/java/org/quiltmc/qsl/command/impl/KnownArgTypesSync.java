@@ -21,10 +21,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.netty.buffer.Unpooled;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
 
 import org.quiltmc.loader.api.minecraft.ClientOnly;
 import org.quiltmc.qsl.networking.api.PacketByteBufs;

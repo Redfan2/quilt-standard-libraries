@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Quilt Project
+ * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,55 +16,50 @@
 
 package org.quiltmc.qsl.networking.mixin;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.spongepowered.asm.mixin.Final;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.packet.payload.CustomPayload;
+import org.quiltmc.qsl.networking.impl.QuiltCustomPayloadPacketCodec;
+import org.quiltmc.qsl.networking.impl.PayloadTypeRegistryImpl;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.payload.CustomPayload;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
-import net.minecraft.util.Identifier;
 
-import org.quiltmc.qsl.networking.api.PacketByteBufs;
-import org.quiltmc.qsl.networking.impl.NetworkingImpl;
-import org.quiltmc.qsl.networking.impl.payload.PacketByteBufPayload;
+import java.util.List;
 
 @Mixin(CustomPayloadS2CPacket.class)
 public class CustomPayloadS2CPacketMixin {
-	@Shadow
-	@Final
-	@Mutable
-	private static Map<Identifier, PacketByteBuf.Reader<? extends CustomPayload>> KNOWN_TYPES;
-
-	@Inject(method = "<clinit>", at = @At("TAIL"))
-	private static void makeMutable(CallbackInfo ci) {
-		KNOWN_TYPES = new HashMap<>(KNOWN_TYPES);
+	@WrapOperation(
+		method = "<clinit>",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/network/packet/payload/CustomPayload;create(Lnet/minecraft/network/packet/payload/CustomPayload$CodecFactory;Ljava/util/List;)Lnet/minecraft/network/codec/PacketCodec;",
+			ordinal = 0
+		)
+	)
+	private static PacketCodec<RegistryByteBuf, CustomPayload> wrapPlayCodec(CustomPayload.CodecFactory<RegistryByteBuf> unknownCodecFactory, List<CustomPayload.Type<RegistryByteBuf, ?>> types, Operation<PacketCodec<RegistryByteBuf, CustomPayload>> original) {
+		PacketCodec<RegistryByteBuf, CustomPayload> codec = original.call(unknownCodecFactory, types);
+		QuiltCustomPayloadPacketCodec<RegistryByteBuf> fabricCodec = (QuiltCustomPayloadPacketCodec<RegistryByteBuf>) codec;
+		fabricCodec.setPacketCodecProvider((packetByteBuf, identifier) -> PayloadTypeRegistryImpl.PLAY_S2C.get(identifier));
+		return codec;
 	}
 
-	@Inject(method = "readPayload", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/s2c/common/CustomPayloadS2CPacket;readUnknownPayload(Lnet/minecraft/util/Identifier;Lnet/minecraft/network/PacketByteBuf;)Lnet/minecraft/network/packet/payload/DiscardedCustomPayload;"), cancellable = true)
-	private static void inject(Identifier id, PacketByteBuf buf, CallbackInfoReturnable<PacketByteBufPayload> cir) {
-		PacketByteBuf copied = PacketByteBufs.copy(buf);
-		cir.setReturnValue(new PacketByteBufPayload(id, copied));
-		buf.skipBytes(buf.readableBytes());
-	}
-
-	@ModifyArg(method = "apply(Lnet/minecraft/network/listener/ClientCommonPacketListener;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/listener/ClientCommonPacketListener;onCustomPayload(Lnet/minecraft/network/packet/s2c/common/CustomPayloadS2CPacket;)V"))
-	public CustomPayloadS2CPacket reserialize(CustomPayloadS2CPacket packet) {
-		if (NetworkingImpl.RESERIALIZE_CUSTOM_PAYLOADS) {
-			PacketByteBuf buf = PacketByteBufs.create();
-			packet.write(buf);
-			return new CustomPayloadS2CPacket(buf);
-		}
-
-		return packet;
+	@WrapOperation(
+		method = "<clinit>",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/network/packet/payload/CustomPayload;create(Lnet/minecraft/network/packet/payload/CustomPayload$CodecFactory;Ljava/util/List;)Lnet/minecraft/network/codec/PacketCodec;",
+			ordinal = 1
+		)
+	)
+	private static PacketCodec<PacketByteBuf, CustomPayload> wrapConfigCodec(CustomPayload.CodecFactory<PacketByteBuf> unknownCodecFactory, List<CustomPayload.Type<PacketByteBuf, ?>> types, Operation<PacketCodec<PacketByteBuf, CustomPayload>> original) {
+		PacketCodec<PacketByteBuf, CustomPayload> codec = original.call(unknownCodecFactory, types);
+		QuiltCustomPayloadPacketCodec<PacketByteBuf> fabricCodec = (QuiltCustomPayloadPacketCodec<PacketByteBuf>) codec;
+		fabricCodec.setPacketCodecProvider((packetByteBuf, identifier) -> PayloadTypeRegistryImpl.CONFIGURATION_S2C.get(identifier));
+		return codec;
 	}
 }

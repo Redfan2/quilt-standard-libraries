@@ -16,6 +16,7 @@
 
 package org.quiltmc.qsl.networking.mixin;
 
+import net.minecraft.network.packet.payload.CustomPayload;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.ServerConfigurationPacketHandler;
+import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.listener.AbstractServerPacketHandler;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.network.packet.c2s.common.PongC2SPacket;
@@ -46,19 +47,27 @@ abstract class AbstractServerPacketHandlerMixin implements NetworkHandlerExtensi
 	@Final
 	protected ClientConnection connection;
 
+
 	@Inject(method = "onCustomPayload", at = @At("HEAD"), cancellable = true)
 	private void handleCustomPayloadReceivedAsync(CustomPayloadC2SPacket packet, CallbackInfo ci) {
-		AbstractChanneledNetworkAddon<?> addon = (AbstractChanneledNetworkAddon<?>) this.getAddon();
-		boolean payloadHandled = addon.handle(packet.payload());
+		final CustomPayload payload = packet.payload();
+		boolean handled;
 
-		if (payloadHandled) {
+		if (getAddon() instanceof ServerConfigurationNetworkAddon addon) {
+			handled = addon.handle(payload);
+		} else {
+			// Play should be handled in ServerPlayNetworkHandlerMixin
+			throw new IllegalStateException("Unknown addon");
+		}
+
+		if (handled) {
 			ci.cancel();
 		}
 	}
 
 	@Inject(method = "onPlayPong", at = @At("TAIL"))
 	private void handlePong(PongC2SPacket packet, CallbackInfo ci) {
-		if (((Object) this) instanceof ServerConfigurationPacketHandler configurationHandler && packet.getParameter() == ServerConfigurationNetworkAddon.PING_ID) {
+		if (((Object) this) instanceof ServerConfigurationNetworkHandler configurationHandler && packet.getParameter() == ServerConfigurationNetworkAddon.PING_ID) {
 			if (((ServerConfigurationTaskManager) configurationHandler).getCurrentTask() instanceof SendChannelsTask) {
 				((ServerConfigurationTaskManager) configurationHandler).finishTask(SendChannelsTask.TYPE); // Vanilla or non-supported client connection.
 			}

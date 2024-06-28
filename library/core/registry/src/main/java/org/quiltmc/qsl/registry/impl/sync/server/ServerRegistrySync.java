@@ -32,7 +32,8 @@ import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.block.Block;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.network.ServerConfigurationPacketHandler;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.encoding.VarInts;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.payload.CustomPayload;
@@ -80,23 +81,23 @@ public final class ServerRegistrySync {
 		ServerConfigurationNetworking.registerGlobalReceiver(ClientPackets.End.ID, ServerRegistrySync::handleEnd);
 	}
 
-	public static void handleHandshake(MinecraftServer server, ServerConfigurationPacketHandler handler, ClientPackets.Handshake handshake, PacketSender<CustomPayload> responseSender) {
+	public static void handleHandshake(MinecraftServer server, ServerConfigurationNetworkHandler handler, ClientPackets.Handshake handshake, PacketSender<CustomPayload> responseSender) {
 		((QuiltSyncTask) ((ServerConfigurationTaskManager) handler).getCurrentTask()).handleHandshake(handshake);
 	}
 
-	public static void handleSyncFailed(MinecraftServer server, ServerConfigurationPacketHandler handler, ClientPackets.SyncFailed syncFailed, PacketSender<CustomPayload> responseSender) {
+	public static void handleSyncFailed(MinecraftServer server, ServerConfigurationNetworkHandler handler, ClientPackets.SyncFailed syncFailed, PacketSender<CustomPayload> responseSender) {
 		((QuiltSyncTask) ((ServerConfigurationTaskManager) handler).getCurrentTask()).handleSyncFailed(syncFailed);
 	}
 
-	public static void handleModProtocol(MinecraftServer server, ServerConfigurationPacketHandler handler, ClientPackets.ModProtocol modProtocol, PacketSender<CustomPayload> responseSender) {
+	public static void handleModProtocol(MinecraftServer server, ServerConfigurationNetworkHandler handler, ClientPackets.ModProtocol modProtocol, PacketSender<CustomPayload> responseSender) {
 		((QuiltSyncTask) ((ServerConfigurationTaskManager) handler).getCurrentTask()).handleModProtocol(modProtocol);
 	}
 
-	public static void handleUnknownEntry(MinecraftServer server, ServerConfigurationPacketHandler handler, ClientPackets.UnknownEntry unknownEntry, PacketSender<CustomPayload> responseSender) {
+	public static void handleUnknownEntry(MinecraftServer server, ServerConfigurationNetworkHandler handler, ClientPackets.UnknownEntry unknownEntry, PacketSender<CustomPayload> responseSender) {
 		((QuiltSyncTask) ((ServerConfigurationTaskManager) handler).getCurrentTask()).handleUnknownEntry(unknownEntry);
 	}
 
-	public static void handleEnd(MinecraftServer server, ServerConfigurationPacketHandler handler, ClientPackets.End end, PacketSender<CustomPayload> responseSender) {
+	public static void handleEnd(MinecraftServer server, ServerConfigurationNetworkHandler handler, ClientPackets.End end, PacketSender<CustomPayload> responseSender) {
 		((QuiltSyncTask) ((ServerConfigurationTaskManager) handler).getCurrentTask()).handleEnd(end);
 	}
 
@@ -151,7 +152,7 @@ public final class ServerRegistrySync {
 
 		Text text = null;
 		try {
-			text = Text.Serializer.fromJson(string);
+			text = Text.SerializationUtil.fromJson(string, DynamicRegistryManager.EMPTY);
 		} catch (Exception e) {}
 
 		return text != null ? text : Text.literal(string);
@@ -170,7 +171,7 @@ public final class ServerRegistrySync {
 			return true;
 		}
 
-		for (var registry : Registries.REGISTRY) {
+		for (var registry : Registries.ROOT) {
 			if (registry instanceof SynchronizedRegistry<?> synchronizedRegistry
 					&& synchronizedRegistry.quilt$requiresSyncing() && synchronizedRegistry.quilt$getContentStatus() != SynchronizedRegistry.Status.VANILLA) {
 				return true;
@@ -189,7 +190,7 @@ public final class ServerRegistrySync {
 			return true;
 		}
 
-		for (var registry : Registries.REGISTRY) {
+		for (var registry : Registries.ROOT) {
 			if (registry instanceof SynchronizedRegistry<?> synchronizedRegistry
 					&& synchronizedRegistry.quilt$requiresSyncing() && synchronizedRegistry.quilt$getContentStatus() == SynchronizedRegistry.Status.REQUIRED) {
 				return true;
@@ -206,7 +207,7 @@ public final class ServerRegistrySync {
 			sendModProtocol(sender);
 		}
 
-		for (var registry : Registries.REGISTRY) {
+		for (var registry : Registries.ROOT) {
 			if (registry instanceof SynchronizedRegistry<?> synchronizedRegistry
 					&& synchronizedRegistry.quilt$requiresSyncing() && synchronizedRegistry.quilt$getContentStatus() != SynchronizedRegistry.Status.VANILLA) {
 				var map = synchronizedRegistry.quilt$getSyncMap();

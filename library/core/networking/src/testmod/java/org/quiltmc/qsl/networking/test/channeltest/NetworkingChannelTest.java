@@ -38,11 +38,11 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.CommandBuildContext;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.EntitySelector;
+import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 import org.quiltmc.qsl.command.api.CommandRegistrationCallback;
 import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
@@ -92,11 +92,11 @@ public final class NetworkingChannelTest implements CommandRegistrationCallback 
 	private static CompletableFuture<Suggestions> suggestReceivableChannels(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
 		final ServerPlayerEntity player = context.getSource().getPlayer();
 
-		return CommandSource.suggestIdentifiers(ServerPlayNetworking.getReceived(player), builder);
+		return CommandSource.suggestIdentifiers(ServerPlayNetworking.getReceived(player).stream().map(CustomPayload.Id::id), builder);
 	}
 
 	private static int registerChannel(CommandContext<ServerCommandSource> context, ServerPlayerEntity executor) throws CommandSyntaxException {
-		final Identifier channel = getIdentifier(context, "channel");
+		final CustomPayload.Id<?> channel = new CustomPayload.Id<>(getIdentifier(context, "channel"));
 
 		if (ServerPlayNetworking.getReceived(executor).contains(channel)) {
 			throw new SimpleCommandExceptionType(Text.of(String.format("Cannot register channel %s twice for server player", channel))).create();
@@ -112,7 +112,7 @@ public final class NetworkingChannelTest implements CommandRegistrationCallback 
 	}
 
 	private static int unregisterChannel(CommandContext<ServerCommandSource> context, ServerPlayerEntity player) throws CommandSyntaxException {
-		final Identifier channel = getIdentifier(context, "channel");
+		final CustomPayload.Id<?> channel = new CustomPayload.Id<>(getIdentifier(context, "channel"));
 
 		if (!ServerPlayNetworking.getReceived(player).contains(channel)) {
 			throw new SimpleCommandExceptionType(Text.of("Cannot unregister channel the server player entity cannot receive packets on")).create();
@@ -126,12 +126,12 @@ public final class NetworkingChannelTest implements CommandRegistrationCallback 
 
 	private static int infoCommand(CommandContext<ServerCommandSource> context, ServerPlayerEntity player) {
 		ServerCommandSource source = context.getSource();
-		Set<Identifier> channels = ServerPlayNetworking.getSendable(player);
+		Set<CustomPayload.Id<?>> channels = ServerPlayNetworking.getSendable(player);
 
 		source.sendSystemMessage(Text.of(String.format("Available channels for player %s", player.getDisplayName())));
 
-		for (Identifier channel : channels) {
-			source.sendSystemMessage(Text.of(channel.toString()));
+		for (CustomPayload.Id<?> channel : channels) {
+			source.sendSystemMessage(Text.of(channel.id().toString()));
 		}
 
 		return 1;

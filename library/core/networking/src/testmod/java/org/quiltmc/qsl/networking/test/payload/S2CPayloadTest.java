@@ -21,17 +21,16 @@ import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.util.Identifier;
 
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.client.ClientModInitializer;
-import org.quiltmc.qsl.networking.api.CustomPayloads;
-import org.quiltmc.qsl.networking.api.PacketByteBufs;
 import org.quiltmc.qsl.networking.api.PacketSender;
+import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 import org.quiltmc.qsl.networking.api.ServerPlayConnectionEvents;
 import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
-import org.quiltmc.qsl.networking.impl.NetworkingImpl;
 import org.quiltmc.qsl.networking.test.NetworkingTestMods;
 
 // Test cannot run on a server, so only run with a client
@@ -40,19 +39,11 @@ public class S2CPayloadTest implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient(ModContainer mod) {
-		CustomPayloads.registerS2CPayload(TestS2CPayload.ID, TestS2CPayload::new);
+		PayloadTypeRegistry.playS2C().register(TestS2CPayload.ID, TestS2CPayload.CODEC);
 		ClientPlayNetworking.registerGlobalReceiver(TestS2CPayload.ID, this::handleTestPayload);
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			sender.sendPayload(new TestS2CPayload(List.of("String"), 1, 1.0));
-
-			if (NetworkingImpl.RESERIALIZE_CUSTOM_PAYLOADS) {
-				var buf = PacketByteBufs.create();
-				buf.writeCollection(List.of("a", "b"), PacketByteBuf::writeString);
-				buf.writeInt(2);
-				buf.writeDouble(2.0);
-				sender.sendPacket(TestS2CPayload.ID, buf);
-			}
 
 			server.execute(() -> {
 				try {
@@ -74,22 +65,24 @@ public class S2CPayloadTest implements ClientModInitializer {
 	}
 
 	public record TestS2CPayload(List<String> strings, int a, double b) implements CustomPayload {
-		public static final Identifier ID = new Identifier("quilt_networking_testmod", "test_s2c_payload");
+		public static final Id<TestS2CPayload> ID = new Id<>(new Identifier("quilt_networking_testmod", "test_s2c_payload"));
+		public static final PacketCodec<PacketByteBuf, TestS2CPayload> CODEC = CustomPayload.create(TestS2CPayload::write, TestS2CPayload::new);
 
 		TestS2CPayload(PacketByteBuf buf) {
 			this(buf.readList(PacketByteBuf::readString), buf.readInt(), buf.readDouble());
 		}
 
-		@Override
-		public void write(PacketByteBuf buf) {
+
+		private void write(PacketByteBuf buf) {
 			buf.writeCollection(this.strings, PacketByteBuf::writeString);
 			buf.writeInt(this.a);
 			buf.writeDouble(this.b);
 		}
 
+
 		@Override
-		public Identifier id() {
-			return ID;
+		public Id<? extends CustomPayload> getId() {
+			return null;
 		}
 	}
 }

@@ -18,7 +18,8 @@ package org.quiltmc.qsl.registry.impl.sync.server;
 
 import java.util.function.Consumer;
 
-import net.minecraft.network.ServerConfigurationPacketHandler;
+import net.minecraft.network.packet.payload.CustomPayload;
+import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.configuration.ConfigurationTask;
 import net.minecraft.network.packet.Packet;
 
@@ -27,7 +28,7 @@ import org.quiltmc.qsl.networking.api.ServerConfigurationTaskManager;
 import org.quiltmc.qsl.registry.impl.sync.ServerPackets;
 import org.quiltmc.qsl.registry.mixin.AbstractServerPacketHandlerAccessor;
 
-public record SetupSyncTask(ServerConfigurationPacketHandler handler) implements ConfigurationTask {
+public record SetupSyncTask(ServerConfigurationNetworkHandler handler) implements ConfigurationTask {
 	public static final ConfigurationTask.Type TYPE = new Type("qsl:configure_sync");
 
 	@Override
@@ -36,10 +37,10 @@ public record SetupSyncTask(ServerConfigurationPacketHandler handler) implements
 			// First check if Quilt sync is available
 			if (ServerConfigurationNetworking.getSendable(this.handler).contains(ServerPackets.Handshake.ID)) {
 				((ServerConfigurationTaskManager) this.handler).addImmediateTask(new QuiltSyncTask(this.handler, ((AbstractServerPacketHandlerAccessor) this.handler).getConnection()));
-			} else if (ServerRegistrySync.forceFabricFallback || (ServerRegistrySync.supportFabric && ServerConfigurationNetworking.getSendable(this.handler).contains(ServerFabricRegistrySync.ID))) {
+			} else if (ServerRegistrySync.forceFabricFallback || (ServerRegistrySync.supportFabric && ServerConfigurationNetworking.getSendable(this.handler).contains(ServerFabricRegistrySync.Payload.ID))) {
 				// TODO: If the client says that it supports fabric sync but then doesnt respond, the client will sit in an idle loop forever.
 				FabricSyncTask fabricSyncTask = new FabricSyncTask(this.handler);
-				ServerConfigurationNetworking.registerReceiver(this.handler, ServerFabricRegistrySync.SYNC_COMPLETE_ID, (server, handler, buf, responseSender) -> fabricSyncTask.handleComplete());
+				ServerConfigurationNetworking.registerReceiver(this.handler, ServerFabricRegistrySync.SyncCompletePayload.ID, (server, handler, buf, responseSender) -> fabricSyncTask.handleComplete());
 				((ServerConfigurationTaskManager) this.handler).addImmediateTask(fabricSyncTask);
 			} else {
 				if (ServerRegistrySync.requiresSync()) {
