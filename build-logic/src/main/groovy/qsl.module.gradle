@@ -146,7 +146,7 @@ loom {
 
 			// Enable the game test runner.
 			property("quilt.game_test", "true")
-			property("quilt.game_test.report_file", "${project.buildDir}/game_test/report.xml")
+			property("quilt.game_test.report_file", layout.buildDirectory.file("game_test/report.xml").get().asFile.path)
 			runDir("build/game_test")
 		}
 	}
@@ -173,8 +173,7 @@ javadoc {
 				"https://guava.dev/releases/31.0.1-jre/api/docs/",
 				"https://asm.ow2.io/javadoc/",
 				"https://docs.oracle.com/en/java/javase/17/docs/api/",
-				"https://jenkins.liteloader.com/job/Mixin/javadoc/",
-				"https://logging.apache.org/log4j/2.x/log4j-api/apidocs/"
+				"https://jenkins.liteloader.com/job/Mixin/javadoc/"
 		)
 
 		// Disable the overzealous doclint tool in Java 8
