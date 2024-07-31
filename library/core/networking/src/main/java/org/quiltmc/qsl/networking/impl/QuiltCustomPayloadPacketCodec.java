@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright 2016, 2017, 2018, 2019 FabricMC
+ * Copyright 2024 The Quilt Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +24,7 @@ import net.minecraft.util.Identifier;
 public interface QuiltCustomPayloadPacketCodec<B extends PacketByteBuf> {
 	void setPacketCodecProvider(CustomPayloadTypeProvider<B> customPayloadTypeProvider);
 
-
 	interface CustomPayloadTypeProvider<B extends PacketByteBuf> {
 		CustomPayload.Type<B, ? extends CustomPayload> get(B packetByteBuf, Identifier identifier);
 	}
-
 }

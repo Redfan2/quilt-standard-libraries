@@ -20,7 +20,7 @@ package org.quiltmc.qsl.networking.impl.common;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-import net.minecraft.network.NetworkState;
+import net.minecraft.network.NetworkPhase;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.configuration.ConfigurationTask;
 import net.minecraft.network.packet.Packet;
@@ -30,10 +30,10 @@ import net.minecraft.server.MinecraftServer;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.networking.api.PacketSender;
 import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
-import org.quiltmc.qsl.networking.api.ServerConfigurationConnectionEvents;
-import org.quiltmc.qsl.networking.api.ServerConfigurationNetworking;
-import org.quiltmc.qsl.networking.api.ServerConfigurationTaskManager;
-import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationConnectionEvents;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationTaskManager;
+import org.quiltmc.qsl.networking.api.server.ServerPlayNetworking;
 import org.quiltmc.qsl.networking.impl.NetworkingImpl;
 import org.quiltmc.qsl.networking.impl.server.ServerConfigurationNetworkAddon;
 import org.quiltmc.qsl.networking.impl.server.ServerNetworkingImpl;
@@ -43,6 +43,8 @@ public class CommonPacketsImpl {
 	public static final int[] SUPPORTED_COMMON_PACKET_VERSIONS = new int[]{PACKET_VERSION_1};
 
 	public static void init(ModContainer mod) {
+		PayloadTypeRegistry.configurationC2S().register(CommonVersionPayload.PACKET_ID, CommonVersionPayload.CODEC);
+		PayloadTypeRegistry.configurationC2S().register(CommonRegisterPayload.PACKET_ID, CommonRegisterPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(CommonVersionPayload.PACKET_ID, CommonVersionPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(CommonRegisterPayload.PACKET_ID, CommonRegisterPayload.CODEC);
 
@@ -79,7 +81,7 @@ public class CommonPacketsImpl {
 			}
 
 			// Play phase hasnt started yet, add them to the pending names.
-			addon.getChannelInfoHolder().getPendingChannelsNames(NetworkState.PLAY).addAll(payload.channels());
+			addon.getChannelInfoHolder().getPendingChannelsNames(NetworkPhase.PLAY).addAll(payload.channels());
 			NetworkingImpl.LOGGER.debug("Received accepted channels from the client for play phase");
 		} else {
 			addon.onCommonRegisterPacket(payload);

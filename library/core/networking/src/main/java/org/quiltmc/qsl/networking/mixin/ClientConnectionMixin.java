@@ -32,8 +32,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.NetworkPhase;
 import net.minecraft.network.NetworkSide;
-import net.minecraft.network.NetworkState;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.listener.PacketListener;
 import net.minecraft.network.packet.Packet;
@@ -57,7 +57,7 @@ abstract class ClientConnectionMixin implements ChannelInfoHolder {
 	public abstract void disconnect(Text disconnectReason);
 
 	@Unique
-	private Map<NetworkState, Collection<CustomPayload.Id<?>>> playChannels;
+	private Map<NetworkPhase, Collection<CustomPayload.Id<?>>> playChannels;
 
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void initAddedFields(NetworkSide side, CallbackInfo ci) {
@@ -102,7 +102,7 @@ abstract class ClientConnectionMixin implements ChannelInfoHolder {
 	}
 
 	@Override
-	public Collection<CustomPayload.Id<?>> getPendingChannelsNames(NetworkState state) {
+	public Collection<CustomPayload.Id<?>> getPendingChannelsNames(NetworkPhase state) {
 		return this.playChannels.computeIfAbsent(state, (s) -> Collections.newSetFromMap(new ConcurrentHashMap<>()));
 	}
 }

@@ -24,7 +24,7 @@ import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.minecraft.network.NetworkState;
+import net.minecraft.network.NetworkPhase;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.network.packet.s2c.login.payload.CustomQueryPayload;
@@ -33,7 +33,7 @@ import net.minecraft.server.network.ServerLoginNetworkHandler;
 
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.networking.api.PacketSender;
-import org.quiltmc.qsl.networking.api.ServerLoginNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerLoginNetworking;
 import org.quiltmc.qsl.networking.impl.payload.ChannelPayload;
 import org.quiltmc.qsl.networking.mixin.accessor.ServerLoginNetworkHandlerAccessor;
 
@@ -50,7 +50,6 @@ public final class NetworkingImpl {
 	 */
 	public static final CustomPayload.Id<ChannelPayload.UnregisterChannelPayload> UNREGISTER_CHANNEL = CustomPayload.create("unregister");
 
-
 	public static void init(ModContainer mod) {
 		PayloadTypeRegistry.configurationC2S().register(REGISTER_CHANNEL, ChannelPayload.RegisterChannelPayload.CODEC);
 		PayloadTypeRegistry.configurationC2S().register(UNREGISTER_CHANNEL, ChannelPayload.UnregisterChannelPayload.CODEC);
@@ -60,7 +59,6 @@ public final class NetworkingImpl {
 		PayloadTypeRegistry.playS2C().register(UNREGISTER_CHANNEL, ChannelPayload.UnregisterChannelPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(REGISTER_CHANNEL, ChannelPayload.RegisterChannelPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(UNREGISTER_CHANNEL, ChannelPayload.UnregisterChannelPayload.CODEC);
-
 	}
 
 	public static boolean isReservedCommonChannel(CustomPayload.Id<?> channelName) {
@@ -80,7 +78,7 @@ public final class NetworkingImpl {
 			ids.add(new CustomPayload.Id<>(buf.readIdentifier()));
 		}
 
-		((ChannelInfoHolder) ((ServerLoginNetworkHandlerAccessor) handler).getConnection()).getPendingChannelsNames(NetworkState.LOGIN).addAll(ids);
+		((ChannelInfoHolder) ((ServerLoginNetworkHandlerAccessor) handler).getConnection()).getPendingChannelsNames(NetworkPhase.LOGIN).addAll(ids);
 		NetworkingImpl.LOGGER.debug("Received accepted channels from the client for \"{}\"", handler.getConnectionInfo());
 	}
 }

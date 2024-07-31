@@ -16,11 +16,10 @@
 
 package org.quiltmc.qsl.networking.impl.server;
 
-import net.minecraft.network.NetworkSide;
 import org.jetbrains.annotations.ApiStatus;
 
-import net.minecraft.network.NetworkState;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.NetworkSide;
+import net.minecraft.network.NetworkPhase;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.listener.ClientCommonPacketListener;
 import net.minecraft.network.packet.Packet;
@@ -29,18 +28,18 @@ import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 
-import org.quiltmc.qsl.networking.api.ServerConfigurationNetworking;
-import org.quiltmc.qsl.networking.api.ServerLoginNetworking;
-import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerLoginNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerPlayNetworking;
 import org.quiltmc.qsl.networking.impl.GlobalReceiverRegistry;
 import org.quiltmc.qsl.networking.impl.NetworkHandlerExtensions;
 import org.quiltmc.qsl.networking.impl.PayloadTypeRegistryImpl;
 
 @ApiStatus.Internal
 public final class ServerNetworkingImpl {
-	public static final GlobalReceiverRegistry<ServerLoginNetworking.QueryResponseReceiver> LOGIN = new GlobalReceiverRegistry<>(NetworkSide.C2S, NetworkState.LOGIN, null);
-	public static final GlobalReceiverRegistry<ServerConfigurationNetworking.CustomChannelReceiver<?>> CONFIGURATION = new GlobalReceiverRegistry<>(NetworkSide.C2S, NetworkState.CONFIGURATION, PayloadTypeRegistryImpl.CONFIGURATION_C2S);
-	public static final GlobalReceiverRegistry<ServerPlayNetworking.CustomChannelReceiver<?>> PLAY = new GlobalReceiverRegistry<>(NetworkSide.C2S, NetworkState.PLAY, PayloadTypeRegistryImpl.PLAY_C2S);
+	public static final GlobalReceiverRegistry<ServerLoginNetworking.QueryResponseReceiver> LOGIN = new GlobalReceiverRegistry<>(NetworkSide.C2S, NetworkPhase.LOGIN, null);
+	public static final GlobalReceiverRegistry<ServerConfigurationNetworking.CustomChannelReceiver<?>> CONFIGURATION = new GlobalReceiverRegistry<>(NetworkSide.C2S, NetworkPhase.CONFIGURATION, PayloadTypeRegistryImpl.CONFIGURATION_C2S);
+	public static final GlobalReceiverRegistry<ServerPlayNetworking.CustomChannelReceiver<?>> PLAY = new GlobalReceiverRegistry<>(NetworkSide.C2S, NetworkPhase.PLAY, PayloadTypeRegistryImpl.PLAY_C2S);
 
 	public static ServerPlayNetworkAddon getAddon(ServerPlayNetworkHandler handler) {
 		return (ServerPlayNetworkAddon) ((NetworkHandlerExtensions) handler).getAddon();

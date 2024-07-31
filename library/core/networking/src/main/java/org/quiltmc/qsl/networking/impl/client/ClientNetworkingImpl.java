@@ -17,7 +17,6 @@
 
 package org.quiltmc.qsl.networking.impl.client;
 
-import net.minecraft.network.NetworkSide;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +26,8 @@ import net.minecraft.client.network.ClientConfigurationNetworkHandler;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.NetworkState;
+import net.minecraft.network.NetworkPhase;
+import net.minecraft.network.NetworkSide;
 import net.minecraft.network.listener.ServerCommonPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
@@ -55,9 +55,9 @@ import org.quiltmc.qsl.networking.mixin.accessor.MinecraftClientAccessor;
 @ApiStatus.Internal
 @ClientOnly
 public final class ClientNetworkingImpl {
-	public static final GlobalReceiverRegistry<ClientLoginNetworking.QueryRequestReceiver> LOGIN = new GlobalReceiverRegistry<>(NetworkSide.S2C, NetworkState.LOGIN, null);
-	public static final GlobalReceiverRegistry<ClientConfigurationNetworking.CustomChannelReceiver<?>> CONFIGURATION = new GlobalReceiverRegistry<>(NetworkSide.S2C, NetworkState.CONFIGURATION, PayloadTypeRegistryImpl.CONFIGURATION_S2C);
-	public static final GlobalReceiverRegistry<ClientPlayNetworking.CustomChannelReceiver<?>> PLAY = new GlobalReceiverRegistry<>(NetworkSide.S2C, NetworkState.PLAY, PayloadTypeRegistryImpl.PLAY_S2C);
+	public static final GlobalReceiverRegistry<ClientLoginNetworking.QueryRequestReceiver> LOGIN = new GlobalReceiverRegistry<>(NetworkSide.S2C, NetworkPhase.LOGIN, null);
+	public static final GlobalReceiverRegistry<ClientConfigurationNetworking.CustomChannelReceiver<?>> CONFIGURATION = new GlobalReceiverRegistry<>(NetworkSide.S2C, NetworkPhase.CONFIGURATION, PayloadTypeRegistryImpl.CONFIGURATION_S2C);
+	public static final GlobalReceiverRegistry<ClientPlayNetworking.CustomChannelReceiver<?>> PLAY = new GlobalReceiverRegistry<>(NetworkSide.S2C, NetworkPhase.PLAY, PayloadTypeRegistryImpl.PLAY_S2C);
 	private static ClientPlayNetworkAddon currentPlayAddon;
 	private static ClientConfigurationNetworkAddon currentConfigurationAddon;
 
@@ -137,6 +137,8 @@ public final class ClientNetworkingImpl {
 			currentConfigurationAddon = null;
 		});
 
+		PayloadTypeRegistry.configurationS2C().register(CommonVersionPayload.PACKET_ID, CommonVersionPayload.CODEC);
+		PayloadTypeRegistry.configurationS2C().register(CommonRegisterPayload.PACKET_ID, CommonRegisterPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(CommonVersionPayload.PACKET_ID, CommonVersionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(CommonRegisterPayload.PACKET_ID, CommonRegisterPayload.CODEC);
 
@@ -157,7 +159,7 @@ public final class ClientNetworkingImpl {
 				throw new IllegalStateException("Negotiated common packet version: %d but received packet with version: %d".formatted(addon.getNegotiatedVersion(), payload.version()));
 			}
 
-			addon.getChannelInfoHolder().getPendingChannelsNames(NetworkState.PLAY).addAll(payload.channels());
+			addon.getChannelInfoHolder().getPendingChannelsNames(NetworkPhase.PLAY).addAll(payload.channels());
 			NetworkingImpl.LOGGER.debug("Received accepted channels from the server");
 			sender.sendPayload(new CommonRegisterPayload(addon.getNegotiatedVersion(), CommonRegisterPayload.PLAY_PHASE, ClientPlayNetworking.getGlobalReceivers()));
 		} else {
@@ -165,7 +167,6 @@ public final class ClientNetworkingImpl {
 			sender.sendPayload(addon.createRegisterPayload());
 		}
 	}
-
 
 	// Disconnect if there are no commonly supported versions.
 	// Client responds with the intersection of supported versions.

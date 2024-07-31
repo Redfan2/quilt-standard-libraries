@@ -21,8 +21,7 @@ import java.util.Map;
 
 import org.jetbrains.annotations.ApiStatus;
 
-import net.minecraft.network.NetworkState;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.NetworkPhase;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.payload.CustomPayload;
@@ -30,10 +29,10 @@ import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.network.packet.s2c.common.PingS2CPacket;
 import net.minecraft.server.MinecraftServer;
 
-import org.quiltmc.qsl.networking.api.S2CConfigurationChannelEvents;
-import org.quiltmc.qsl.networking.api.ServerConfigurationConnectionEvents;
-import org.quiltmc.qsl.networking.api.ServerConfigurationNetworking;
-import org.quiltmc.qsl.networking.api.ServerConfigurationTaskManager;
+import org.quiltmc.qsl.networking.api.server.S2CConfigurationChannelEvents;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationConnectionEvents;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationNetworking;
+import org.quiltmc.qsl.networking.api.server.ServerConfigurationTaskManager;
 import org.quiltmc.qsl.networking.impl.AbstractChanneledNetworkAddon;
 import org.quiltmc.qsl.networking.impl.ChannelInfoHolder;
 import org.quiltmc.qsl.networking.impl.NetworkingImpl;
@@ -53,7 +52,7 @@ public final class ServerConfigurationNetworkAddon extends AbstractChanneledNetw
 		this.server = server;
 
 		// Must register pending channels via lateinit
-		this.registerPendingChannels((ChannelInfoHolder) this.connection, NetworkState.CONFIGURATION);
+		this.registerPendingChannels((ChannelInfoHolder) this.connection, NetworkPhase.CONFIGURATION);
 
 		// Register global receivers and attach to session
 		this.receiver.startSession(this);

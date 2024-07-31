@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.quiltmc.qsl.networking.api;
+package org.quiltmc.qsl.networking.api.server;
 
 import java.util.Objects;
 import java.util.Set;
@@ -23,14 +23,13 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.network.listener.ClientCommonPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
 
+import org.quiltmc.qsl.networking.api.PacketSender;
 import org.quiltmc.qsl.networking.api.client.ClientConfigurationNetworking;
 import org.quiltmc.qsl.networking.impl.server.ServerNetworkingImpl;
 import org.quiltmc.qsl.networking.mixin.accessor.AbstractServerPacketHandlerAccessor;
@@ -231,7 +230,7 @@ public final class ServerConfigurationNetworking {
 		 * This method is executed on {@linkplain io.netty.channel.EventLoop netty's event loops}.
 		 * Modification to the game should be {@linkplain net.minecraft.util.thread.ThreadExecutor#submit(Runnable) scheduled} using the provided Minecraft server instance.
 		 * <pre>{@code
-		 * ServerConfigurationNetworking.registerReceiver(new Identifier("mymod", "boom"), (server, handler, data, responseSender) -> {
+		 * ServerConfigurationNetworking.registerReceiver(Identifier.of("mymod", "boom"), (server, handler, data, responseSender) -> {
 		 * 	boolean fire = data.readBoolean();
 		 *
 		 * 	// All operations on the server or world must be executed on the server thread

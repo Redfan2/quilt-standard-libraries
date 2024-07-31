@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.quiltmc.qsl.networking.api;
+package org.quiltmc.qsl.networking.api.server;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -32,6 +32,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
+import org.quiltmc.qsl.networking.api.PacketSender;
 import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 import org.quiltmc.qsl.networking.impl.server.ServerNetworkingImpl;
 
@@ -295,7 +296,7 @@ public final class ServerPlayNetworking {
 		 * <p>
 		 * An example usage of this is to create an explosion where the player is looking:
 		 * <pre>{@code
-		 * ServerPlayNetworking.registerReceiver(new Identifier("mymod", "boom"), (server, player, handler, data, responseSender) -> {
+		 * ServerPlayNetworking.registerReceiver(Identifier.of("mymod", "boom"), (server, player, handler, data, responseSender) -> {
 		 * 	boolean fire = data.readBoolean();
 		 *
 		 * 	// All operations on the server or world must be executed on the server thread

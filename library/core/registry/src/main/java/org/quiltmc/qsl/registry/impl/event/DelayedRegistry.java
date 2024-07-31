@@ -84,6 +84,11 @@ public final class DelayedRegistry<T> implements MutableRegistry<T> {
 	}
 
 	@Override
+	public Optional<Reference<T>> getAny() {
+		return this.wrapped.getAny();
+	}
+
+	@Override
 	public Set<Identifier> getIds() {
 		return this.wrapped.getIds();
 	}

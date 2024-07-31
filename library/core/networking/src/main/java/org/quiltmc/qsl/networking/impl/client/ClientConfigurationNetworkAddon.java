@@ -23,8 +23,7 @@ import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientConfigurationNetworkHandler;
-import net.minecraft.network.NetworkState;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.NetworkPhase;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.network.packet.payload.CustomPayload;
@@ -54,7 +53,7 @@ public final class ClientConfigurationNetworkAddon extends AbstractChanneledNetw
 		this.client = client;
 
 		// Must register pending channels via lateinit
-		this.registerPendingChannels((ChannelInfoHolder) this.connection, NetworkState.CONFIGURATION);
+		this.registerPendingChannels((ChannelInfoHolder) this.connection, NetworkPhase.CONFIGURATION);
 
 		// Register global receivers and attach to session
 		this.receiver.startSession(this);
@@ -67,11 +66,6 @@ public final class ClientConfigurationNetworkAddon extends AbstractChanneledNetw
 		}
 
 		ClientConfigurationConnectionEvents.INIT.invoker().onConfigurationInit(this.handler, this.client);
-
-		this.sendInitialChannelRegistrationPacket();
-		this.sentInitialRegisterPacket = true;
-
-		ClientConfigurationConnectionEvents.START.invoker().onConfigurationStart(this.handler, this, this.client);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -94,6 +88,13 @@ public final class ClientConfigurationNetworkAddon extends AbstractChanneledNetw
 
 	@Override
 	protected void invokeRegisterEvent(List<CustomPayload.Id<?>> ids) {
+		if (!this.sentInitialRegisterPacket) {
+			this.sendInitialChannelRegistrationPacket();
+			this.sentInitialRegisterPacket = true;
+
+			ClientConfigurationConnectionEvents.START.invoker().onConfigurationStart(this.handler, this, this.client);
+		}
+
 		C2SConfigurationChannelEvents.REGISTER.invoker().onChannelRegister(this.handler, this, this.client, ids);
 	}
 

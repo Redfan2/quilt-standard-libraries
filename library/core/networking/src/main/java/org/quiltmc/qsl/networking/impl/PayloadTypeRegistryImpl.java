@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright 2016, 2017, 2018, 2019 FabricMC
+ * Copyright 2024 The Quilt Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +21,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import net.minecraft.network.NetworkState;
-import net.minecraft.network.packet.payload.CustomPayload;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.network.NetworkPhase;
+import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.network.NetworkSide;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
+
 import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 
 public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements PayloadTypeRegistry<B> {
-	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_C2S = new PayloadTypeRegistryImpl<>(NetworkState.CONFIGURATION, NetworkSide.C2S);
-	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_S2C = new PayloadTypeRegistryImpl<>(NetworkState.CONFIGURATION, NetworkSide.S2C);
-	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_C2S = new PayloadTypeRegistryImpl<>(NetworkState.PLAY, NetworkSide.C2S);
-	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_S2C = new PayloadTypeRegistryImpl<>(NetworkState.PLAY, NetworkSide.S2C);
+	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_C2S = new PayloadTypeRegistryImpl<>(NetworkPhase.CONFIGURATION, NetworkSide.C2S);
+	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_S2C = new PayloadTypeRegistryImpl<>(NetworkPhase.CONFIGURATION, NetworkSide.S2C);
+	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_C2S = new PayloadTypeRegistryImpl<>(NetworkPhase.PLAY, NetworkSide.C2S);
+	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_S2C = new PayloadTypeRegistryImpl<>(NetworkPhase.PLAY, NetworkSide.S2C);
 
 	private final Map<Identifier, CustomPayload.Type<B, ? extends CustomPayload>> packetTypes = new HashMap<>();
-	private final NetworkState state;
+	private final NetworkPhase phase;
 	private final NetworkSide side;
 
-	private PayloadTypeRegistryImpl(NetworkState state, NetworkSide side) {
-		this.state = state;
+	private PayloadTypeRegistryImpl(NetworkPhase phase, NetworkSide side) {
+		this.phase = phase;
 		this.side = side;
 	}
 
@@ -53,30 +55,30 @@ public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements Payload
 
 		final CustomPayload.Type<B, T> payloadType = new CustomPayload.Type<>(id, codec.cast());
 
-		if (packetTypes.containsKey(id.id())) {
+		if (this.packetTypes.containsKey(id.id())) {
 			throw new IllegalArgumentException("Packet type " + id + " is already registered!");
 		}
 
-		packetTypes.put(id.id(), payloadType);
+		this.packetTypes.put(id.id(), payloadType);
 		return payloadType;
 	}
 
 	@Nullable
 	public CustomPayload.Type<B, ? extends CustomPayload> get(Identifier id) {
-		return packetTypes.get(id);
+		return this.packetTypes.get(id);
 	}
 
 	@Nullable
 	public <T extends CustomPayload> CustomPayload.Type<B, T> get(CustomPayload.Id<T> id) {
 		//noinspection unchecked
-		return (CustomPayload.Type<B, T>) packetTypes.get(id.id());
+		return (CustomPayload.Type<B, T>) this.packetTypes.get(id.id());
 	}
 
-	public NetworkState getPhase() {
-		return state;
+	public NetworkPhase getPhase() {
+		return this.phase;
 	}
 
 	public NetworkSide getSide() {
-		return side;
+		return this.side;
 	}
 }

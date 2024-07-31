@@ -86,7 +86,7 @@ public class ModNioPack extends AbstractFileResourcePack implements QuiltPack {
 		super(new PackLocationInfo(
 				name,
 				displayName,
-				PackSource.PACK_SOURCE_BUILTIN,
+				new QuiltBuiltinPackProfile.BuiltinPackSource(modInfo, activationType),
 				Optional.empty()
 		));
 
@@ -199,6 +199,19 @@ public class ModNioPack extends AbstractFileResourcePack implements QuiltPack {
 				return ResourceLoaderImpl.parseMetadata(metaReader, this, stream);
 			}
 		}
+	}
+
+	@Override
+	public @NotNull ResourcePack createOverlay(String overlay) {
+		return new ModNioPack(
+			this.name,
+			this.modInfo,
+			this.displayName,
+			this.activationType,
+			this.io.basePath.resolve(overlay),
+			this.type,
+			this.closer
+		);
 	}
 
 	//region metadata

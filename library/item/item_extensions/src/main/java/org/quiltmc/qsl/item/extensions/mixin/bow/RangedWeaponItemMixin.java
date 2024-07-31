@@ -16,26 +16,24 @@
 
 package org.quiltmc.qsl.item.extensions.mixin.bow;
 
+import java.util.List;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-
-import java.util.List;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.item.ArrowItem;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.RangedWeaponItem;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Hand;
-import net.minecraft.world.World;
 
 import org.quiltmc.qsl.item.extensions.api.bow.BowShotProjectileEvents;
 
@@ -47,15 +45,16 @@ public abstract class RangedWeaponItemMixin {
 	// Allows custom bows to modify the projectile shot by bows
 	// Two mixins are needed for this in order to capture the locals
 	@Inject(
-			method = "method_57393",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/item/RangedWeaponItem;method_7763(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/entity/projectile/ProjectileEntity;IFFFLnet/minecraft/entity/LivingEntity;)V"),
+			method = "shootAll",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/item/RangedWeaponItem;shoot(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/entity/projectile/ProjectileEntity;IFFFLnet/minecraft/entity/LivingEntity;)V"),
 			locals = LocalCapture.CAPTURE_FAILHARD
 	)
-	public void onStoppedUsing_modifyArrow(World world, LivingEntity user, Hand hand, ItemStack bowStack,
-										   List<ItemStack> list, float pullProgress, float g, boolean bl,
-										   LivingEntity livingEntity2, CallbackInfo ci, float h, float i,
-										   float j, float k, int l, ItemStack arrowStack,
-										   float m, ProjectileEntity projectileEntity) {
+	public void onStoppedUsing_modifyArrow(
+			ServerWorld world, LivingEntity user, Hand hand, ItemStack bowStack,
+			List<ItemStack> list, float pullProgress, float g, boolean bl,
+			LivingEntity livingEntity2, CallbackInfo ci, float h, float i,
+			float j, float k, int l, ItemStack arrowStack,
+			float m, ProjectileEntity projectileEntity) {
 		RangedWeaponItem self = (RangedWeaponItem) (Object) this;
 		if ((self instanceof BowItem)) {
 			this.quilt$onStoppedUsing$shotProjectile.set(BowShotProjectileEvents.BOW_REPLACE_SHOT_PROJECTILE.invoker().replaceProjectileShot(bowStack, arrowStack, user, pullProgress / 3f, (PersistentProjectileEntity) projectileEntity));
@@ -65,8 +64,8 @@ public abstract class RangedWeaponItemMixin {
 
 	// Actually modifies the projectile
 	@ModifyVariable(
-			method = "method_57393",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z")
+			method = "shootAll",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;spawnEntity(Lnet/minecraft/entity/Entity;)Z")
 	)
 	public ProjectileEntity onStoppedUsing_replaceArrow(ProjectileEntity persistentProjectileEntity) {
 		return this.quilt$onStoppedUsing$shotProjectile.get();
@@ -74,13 +73,14 @@ public abstract class RangedWeaponItemMixin {
 
 	// Removes the pointer to the shot projectile for GC
 	@Inject(
-			method = "method_57393",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z", shift = At.Shift.AFTER)
+			method = "shootAll",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;spawnEntity(Lnet/minecraft/entity/Entity;)Z", shift = At.Shift.AFTER)
 	)
-	public void onStoppedUsing_resetInternalProjectile(World world, LivingEntity livingEntity,
-													   Hand hand, ItemStack stack, List<ItemStack> list,
-													   float f, float g, boolean bl,
-													   LivingEntity livingEntity2, CallbackInfo ci) {
+	public void onStoppedUsing_resetInternalProjectile(
+			ServerWorld world, LivingEntity livingEntity,
+			Hand hand, ItemStack stack, List<ItemStack> list,
+			float f, float g, boolean bl,
+			LivingEntity livingEntity2, CallbackInfo ci) {
 		this.quilt$onStoppedUsing$shotProjectile.remove();
 	}
 }

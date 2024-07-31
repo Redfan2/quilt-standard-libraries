@@ -23,14 +23,15 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.resource.PackPosition;
 import net.minecraft.resource.pack.PackCompatibility;
 import net.minecraft.resource.pack.PackProfile;
 import net.minecraft.resource.pack.PackSource;
 import net.minecraft.resource.pack.ResourcePack;
 import net.minecraft.text.Text;
-import net.minecraft.unmapped.C_yzksgymh;
 import net.minecraft.util.Formatting;
 
+import org.quiltmc.loader.api.ModMetadata;
 import org.quiltmc.qsl.resource.loader.api.QuiltPackProfile;
 import org.quiltmc.qsl.resource.loader.api.PackActivationType;
 
@@ -56,7 +57,7 @@ public final class QuiltBuiltinPackProfile extends PackProfile {
 				pack.getLocationInfo(),
 				QuiltPackProfile.wrapToFactory(pack),
 				info,
-				new C_yzksgymh(
+				new PackPosition(
 					true,
 					PackProfile.InsertionPosition.TOP,
 					false
@@ -82,20 +83,20 @@ public final class QuiltBuiltinPackProfile extends PackProfile {
 	 */
 	public static class BuiltinPackSource implements PackSource {
 		private static final Text SOURCE_BUILTIN_TEXT = Text.translatable("pack.source.builtin");
-		private final ModNioPack pack;
 		private final Text text;
 		private final Text tooltip;
+		private final PackActivationType activationType;
 
-		BuiltinPackSource(ModNioPack pack) {
-			String modName = pack.modInfo.name();
+		BuiltinPackSource(ModMetadata modInfo, PackActivationType activationType) {
+			String modName = modInfo.name();
 
 			if (modName == null) {
-				modName = pack.modInfo.id();
+				modName = modInfo.id();
 			}
 
-			this.pack = pack;
 			this.text = SOURCE_BUILTIN_TEXT;
 			this.tooltip = Text.translatable("options.generic_value", SOURCE_BUILTIN_TEXT, modName);
+			this.activationType = activationType;
 		}
 
 		@Override
@@ -105,7 +106,7 @@ public final class QuiltBuiltinPackProfile extends PackProfile {
 
 		@Override
 		public boolean shouldAddAutomatically() {
-			return this.pack.getActivationType().isEnabledByDefault();
+			return this.activationType.isEnabledByDefault();
 		}
 
 		public Text getTooltip() {

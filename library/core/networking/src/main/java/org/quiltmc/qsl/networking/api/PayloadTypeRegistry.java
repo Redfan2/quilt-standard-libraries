@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
- * Copyright 2023 The Quilt Project
+ * Copyright 2016, 2017, 2018, 2019 FabricMC
+ * Copyright 2024 The Quilt Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 
 package org.quiltmc.qsl.networking.api;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.payload.CustomPayload;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.qsl.networking.impl.PayloadTypeRegistryImpl;
 
 /**
