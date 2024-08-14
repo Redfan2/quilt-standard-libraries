@@ -56,7 +56,7 @@ public abstract class AbstractFurnaceBlockEntityMixin {
 	// Serializes burn time as an integer instead of a short.
 	// Should not cause any desyncs as BE sync packets are now NBT.
 
-	@Inject(method = "method_11014", at = @At("TAIL"))
+	@Inject(method = "readNbtImpl", at = @At("TAIL"))
 	private void readBurnTimeAsInt(NbtCompound nbt, HolderLookup.Provider lookupProvider, CallbackInfo info) {
 		this.burnTime = nbt.getInt("BurnTime");
 	}

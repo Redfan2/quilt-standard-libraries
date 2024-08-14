@@ -55,8 +55,8 @@ public class ColorfulBlockEntity extends BlockEntity implements QuiltBlockEntity
 	/* Serialization */
 
 	@Override
-	public void method_11014(NbtCompound nbt, HolderLookup.Provider lookupProvider) {
-		super.method_11014(nbt, lookupProvider);
+	public void readNbtImpl(NbtCompound nbt, HolderLookup.Provider lookupProvider) {
+		super.readNbtImpl(nbt, lookupProvider);
 
 		try {
 			this.color = Integer.parseInt(nbt.getString("color"), 16);

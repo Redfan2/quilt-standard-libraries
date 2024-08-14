@@ -28,8 +28,8 @@ import net.minecraft.feature_flags.FeatureFlag;
 import net.minecraft.item.FoodComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.JukeboxSong;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.unmapped.C_yeazlrrn;
 import net.minecraft.util.Rarity;
 
 import org.quiltmc.qsl.item.setting.impl.CustomItemSettingImpl;
@@ -241,7 +241,7 @@ public class QuiltItemSettings extends Item.Settings {
 
 	@Override
 	@Contract("_->this")
-	public QuiltItemSettings jukeboxSong(RegistryKey<C_yeazlrrn> song) {
+	public QuiltItemSettings jukeboxSong(RegistryKey<JukeboxSong> song) {
 		super.jukeboxSong(song);
 		return this;
 	}
