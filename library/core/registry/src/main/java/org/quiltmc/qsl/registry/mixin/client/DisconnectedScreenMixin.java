@@ -21,6 +21,7 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -43,7 +44,8 @@ public class DisconnectedScreenMixin extends Screen {
 	@Final
 	private LinearLayoutWidget grid;
 
-	private List<LogBuilder.Section> quilt$extraLogs;
+	@Unique
+	private List<LogBuilder.Section> quilt$extraLogs= List.of();
 
 	protected DisconnectedScreenMixin(Text title) {
 		super(title);
