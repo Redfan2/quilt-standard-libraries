@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 QuiltMC
+ * Copyright 2022 The Quilt Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.quiltmc.qsl.debug_renderers.impl;
 
-import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.ApiStatus;
-import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 

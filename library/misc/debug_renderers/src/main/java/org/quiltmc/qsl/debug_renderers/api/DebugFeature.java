@@ -1,29 +1,46 @@
-package org.quiltmc.qsl.debug_renderers.api;
+/*
+ * Copyright 2024 The Quilt Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import org.quiltmc.loader.api.minecraft.ClientOnly;
-import org.quiltmc.qsl.debug_renderers.impl.DebugFeaturesImpl;
-import org.quiltmc.qsl.networking.api.PlayerLookup;
+package org.quiltmc.qsl.debug_renderers.api;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
+
+import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.PacketCodec;
+
+import org.quiltmc.qsl.debug_renderers.impl.DebugFeaturesImpl;
+import org.quiltmc.qsl.networking.api.PlayerLookup;
+import org.quiltmc.loader.api.minecraft.ClientOnly;
 
 public final class DebugFeature {
 	private final Identifier id;
 	private final boolean needsServer;
 
 	public static final Codec<DebugFeature> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-		Identifier.CODEC.fieldOf("id").forGetter(DebugFeature::id),
-		Codec.BOOL.fieldOf("needsServer").forGetter(DebugFeature::needsServer)
+			Identifier.CODEC.fieldOf("id").forGetter(DebugFeature::id),
+			Codec.BOOL.fieldOf("needsServer").forGetter(DebugFeature::needsServer)
 	).apply(instance, DebugFeature::new));
 	public static final PacketCodec<ByteBuf, DebugFeature> PACKET_CODEC = PacketCodecs.fromCodec(CODEC);
 
@@ -37,8 +54,10 @@ public final class DebugFeature {
 	}
 
 	public Collection<ServerPlayerEntity> getPlayersWithFeatureEnabled(MinecraftServer server) {
-		return DebugFeaturesImpl.isEnabled(this) ?
-			PlayerLookup.all(server).stream().filter(p -> DebugFeaturesImpl.isEnabledForPlayer(p, this)).toList() :
+		return DebugFeaturesImpl.isEnabled(this)
+			?
+			PlayerLookup.all(server).stream().filter(p -> DebugFeaturesImpl.isEnabledForPlayer(p, this)).toList()
+			:
 			List.of();
 	}
 
@@ -61,8 +80,8 @@ public final class DebugFeature {
 		if (existingFeature != null) {
 			throw new IllegalArgumentException("A debug feature with the id %s already exists!".formatted(id));
 		}
-		var newFeature = new DebugFeature(id, needsServer);
-		return DebugFeaturesImpl.register(newFeature);
+
+		return DebugFeaturesImpl.register(new DebugFeature(id, needsServer));
 	}
 
 	public Identifier id() {
@@ -78,7 +97,8 @@ public final class DebugFeature {
 		if (obj == this) return true;
 		if (obj == null || obj.getClass() != this.getClass()) return false;
 		var that = (DebugFeature) obj;
-		return Objects.equals(this.id, that.id) &&
+		return Objects.equals(this.id, that.id)
+			&&
 			this.needsServer == that.needsServer;
 	}
 
@@ -89,10 +109,7 @@ public final class DebugFeature {
 
 	@Override
 	public String toString() {
-		return "DebugFeature[" +
-			"id=" + this.id + ", " +
-			"needsServer=" + this.needsServer + ']';
+		return "DebugFeature["
+			+ "id=" + this.id + ", " + "needsServer=" + this.needsServer + ']';
 	}
-
-
 }

@@ -45,7 +45,7 @@ public class DisconnectedScreenMixin extends Screen {
 	private LinearLayoutWidget grid;
 
 	@Unique
-	private List<LogBuilder.Section> quilt$extraLogs= List.of();
+	private List<LogBuilder.Section> quilt$extraLogs = List.of();
 
 	protected DisconnectedScreenMixin(Text title) {
 		super(title);

@@ -1,15 +1,37 @@
+/*
+ * Copyright 2024 The Quilt Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.quiltmc.qsl.debug_renderers.impl;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.HashMap;
+
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
+
 import org.quiltmc.loader.api.minecraft.ClientOnly;
 import org.quiltmc.qsl.debug_renderers.api.DebugFeature;
 import org.quiltmc.qsl.networking.api.PlayerLookup;
-
-import java.util.*;
 
 @ApiStatus.Internal
 public class DebugFeaturesImpl {
@@ -70,6 +92,7 @@ public class DebugFeaturesImpl {
 		} else {
 			set.remove(feature.id());
 		}
+
 		ENABLED_FEATURES_PER_PLAYER.put(player, set);
 	}
 
@@ -82,6 +105,7 @@ public class DebugFeaturesImpl {
 				set.remove(entry.getKey().id());
 			}
 		}
+
 		ENABLED_FEATURES_PER_PLAYER.put(player, set);
 	}
 

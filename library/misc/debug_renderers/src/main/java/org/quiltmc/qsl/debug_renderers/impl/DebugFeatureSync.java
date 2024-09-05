@@ -1,18 +1,37 @@
+/*
+ * Copyright 2024 The Quilt Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.quiltmc.qsl.debug_renderers.impl;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.quiltmc.loader.api.minecraft.ClientOnly;
+
 import org.quiltmc.qsl.debug_renderers.api.DebugFeature;
 import org.quiltmc.qsl.networking.api.PacketByteBufs;
 import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 import org.quiltmc.qsl.networking.api.server.ServerPlayNetworking;
-
-import java.util.*;
+import org.quiltmc.loader.api.minecraft.ClientOnly;
 
 public final class DebugFeatureSync {
-
 	@ClientOnly
 	public static void syncFeaturesToServer() {
 		var features = DebugFeaturesImpl.getFeatures();
@@ -49,14 +68,14 @@ public final class DebugFeatureSync {
 		for (DebugFeature feature : features) {
 			map.put(feature, DebugFeaturesImpl.isEnabled(feature));
 		}
+
 		return map;
 	}
 
-	/** Takes a PacketByteBuf, validates that it contains {@code DebugFeature}s and their corresponding statuses and returns these
+	/** Takes a PacketByteBuf, validates that it contains {@code DebugFeature}s and their corresponding statuses and returns these.
 	 * @author QuiltMC, WillBl
 	 * */
 	public static Map<DebugFeature, Boolean> readStatuses(PacketByteBuf buf) {
-
 		final int size = buf.readVarInt();
 		var statuses = new HashMap<DebugFeature, Boolean>();
 		for (int i = 0; i < size; i++) {
@@ -66,6 +85,7 @@ public final class DebugFeatureSync {
 				Initializer.LOGGER.warn("Received value for unknown debug feature {}", featureId);
 				continue;
 			}
+
 			boolean enabled = buf.readBoolean();
 			statuses.put(feature, enabled);
 		}

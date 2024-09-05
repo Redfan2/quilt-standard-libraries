@@ -13,7 +13,7 @@ qslModule {
 			testmodOnly("lifecycle_events")
 		}
 		gui {
-			impl("screen")
+			api("screen")
 		}
 	}
 	entrypoints {

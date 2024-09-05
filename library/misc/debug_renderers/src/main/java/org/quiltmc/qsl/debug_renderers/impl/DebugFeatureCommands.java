@@ -1,26 +1,41 @@
+/*
+ * Copyright 2024 The Quilt Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.quiltmc.qsl.debug_renderers.impl;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.ApiStatus;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.component.TextComponent;
-import org.jetbrains.annotations.ApiStatus;
 
-import net.minecraft.command.CommandSource;
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
+
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.command.CommandSource;
 
 import org.quiltmc.qsl.command.api.CommandRegistrationCallback;
 import org.quiltmc.qsl.debug_renderers.api.DebugFeature;
-
-import java.util.function.Supplier;
 
 @ApiStatus.Internal
 final class DebugFeatureCommands {
@@ -65,11 +80,9 @@ final class DebugFeatureCommands {
 				public Text get() {
 					return Text.empty()
 						.append(Text.literal("[Debug|Server]: ").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD))
-						.append(Text.literal(id+" "+(value ? "enabled" : "disabled")))
-						;
+						.append(Text.literal(id+" "+(value ? "enabled" : "disabled")));
 				}
 				},
-
 				true
 			);
 			return Command.SINGLE_SUCCESS;
