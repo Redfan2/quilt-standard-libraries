@@ -16,18 +16,16 @@
 
 package org.quiltmc.qsl.debug_renderers.impl;
 
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.network.codec.PacketCodecs;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.payload.CustomPayload;
 
 import org.quiltmc.qsl.debug_renderers.api.DebugFeature;
@@ -35,12 +33,17 @@ import org.quiltmc.qsl.debug_renderers.api.DebugFeature;
 /**	This payload syncs the enabled and available {@code DebugFeature}s from the server to the Client.
  * */
 public record DebugFeatureSyncPacket(Map<DebugFeature, Boolean> features) implements CustomPayload {
+	public DebugFeatureSyncPacket(PacketByteBuf buf) {
+		this(readStatuses(buf));
+	}
+
 	public static final Codec<DebugFeatureSyncPacket> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			Codec.unboundedMap(
 				DebugFeature.CODEC,
 				Codec.BOOL
 			).fieldOf("states").forGetter(DebugFeatureSyncPacket::features)).apply(instance, DebugFeatureSyncPacket::new));
-	public static final PacketCodec<ByteBuf, DebugFeatureSyncPacket> PACKET_CODEC = PacketCodecs.fromCodec(DebugFeatureSyncPacket.CODEC);
+	public static final PacketCodec<PacketByteBuf, DebugFeatureSyncPacket> PACKET_CODEC = CustomPayload.create(DebugFeatureSyncPacket::write, DebugFeatureSyncPacket::new).cast();
+	//PacketCodecs.fromCodec(DebugFeatureSyncPacket.CODEC);
 	public static final CustomPayload.Id<DebugFeatureSyncPacket> ID = new CustomPayload.Id<>(Initializer.id("sync_features"));
 
 	public Map<DebugFeature, Boolean> toMap() {
@@ -49,7 +52,7 @@ public record DebugFeatureSyncPacket(Map<DebugFeature, Boolean> features) implem
 		return map;
 	}
 
-	public static Map<DebugFeature, Boolean> readStatuses(PacketByteBuf buf) {
+	/*public static Map<DebugFeature, Boolean> readStatuses(PacketByteBuf buf) {
 		final int size = buf.readVarInt();
 		Map<DebugFeature, Boolean> statuses = new HashMap<>();
 		for (int i = 0; i < size; i++) {
@@ -65,23 +68,24 @@ public record DebugFeatureSyncPacket(Map<DebugFeature, Boolean> features) implem
 		}
 
 		return statuses;
+	}*/
+	public static Map<DebugFeature, Boolean> readStatuses(PacketByteBuf buf) {
+		return buf.readMap(DebugFeature.PACKET_CODEC, PacketCodecs.BOOL);
 	}
 
-	public void write(PacketByteBuf buf) {
+	/*public void write(PacketByteBuf buf) {
 		buf.writeVarInt(this.features.size());
 		this.features.forEach((feature, enabled) -> {
 			buf.writeIdentifier(feature.id());
 			buf.writeBoolean(DebugFeaturesImpl.isEnabled(feature));
 		});
+	}*/
+	public void write(PacketByteBuf buf) {
+		buf.writeMap(this.features(), DebugFeature.PACKET_CODEC, PacketCodecs.BOOL);
 	}
 
 	@Override
 	public Id<? extends CustomPayload> getId() {
 		return ID;
-	}
-
-	private void convertStatuses(PacketByteBuf buf) {
-		//List<>
-		//DebugFeatureSync.readStatuses(buf).forEach();
 	}
 }

@@ -25,6 +25,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import org.quiltmc.qsl.debug_renderers.api.DebugFeature;
+import org.quiltmc.qsl.debug_renderers.impl.client.ClientInitializer;
 import org.quiltmc.qsl.networking.api.PacketByteBufs;
 import org.quiltmc.qsl.networking.api.PayloadTypeRegistry;
 import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
@@ -104,7 +105,7 @@ public final class DebugFeatureSync {
 
 	@ClientOnly
 	public static void clientInit() {
-		if (Initializer.HAS_NETWORKING) {
+		if (ClientInitializer.HAS_NETWORKING) {
 			ClientPlayNetworking.registerGlobalReceiver(DebugFeatureSyncPacket.ID, (client, handler, packet, responseSender) -> {
 				client.execute(() -> {
 					DebugFeaturesImpl.setEnabledOnServer(packet.features());

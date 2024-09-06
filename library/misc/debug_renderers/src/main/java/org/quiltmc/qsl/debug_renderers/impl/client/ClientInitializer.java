@@ -31,6 +31,7 @@ import org.quiltmc.loader.api.minecraft.ClientOnly;
 @ClientOnly
 public final class ClientInitializer implements ClientModInitializer {
 	private static final Logger LOGGER = LogUtils.getLogger();
+	public static boolean HAS_NETWORKING = QuiltLoader.isModLoaded("quilt_networking");
 
 	@Override
 	public void onInitializeClient(ModContainer mod) {
